@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="./manifest.json" />
+    <title>Apprentissage de Paroles</title>
+    <style>
+      /* CSS intégré pour éviter les problèmes de chargement */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      #app {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: white;
+      }
+
+      header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      }
+
+      header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      main {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      }
+
+      section {
+        margin-bottom: 2rem;
+      }
+
+      section:last-child {
+        margin-bottom: 0;
+      }
+
+      .input-section label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #555;
+      }
+
+      #lyrics-input {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: inherit;
+        resize: vertical;
+        transition: border-color 0.3s ease;
+      }
+
+      #lyrics-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .controls-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex: 1;
+        min-width: 120px;
+      }
+
+      .primary-btn {
+        background: #667eea;
+        color: white;
+      }
+
+      .primary-btn:hover {
+        background: #5a6fd8;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .secondary-btn {
+        background: #e1e5e9;
+        color: #555;
+      }
+
+      .secondary-btn:hover {
+        background: #d1d5d9;
+        transform: translateY(-2px);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+
+      .lyrics-container {
+        min-height: 200px;
+        padding: 1.5rem;
+        border: 2px dashed #e1e5e9;
+        border-radius: 10px;
+        background: #fafbfc;
+        font-size: 1.1rem;
+        line-height: 1.8;
+      }
+
+      .placeholder-text {
+        color: #999;
+        font-style: italic;
+        text-align: center;
+        margin-top: 3rem;
+      }
+
+      .lyrics-line {
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+      }
+
+      .current-line {
+        background: rgba(102, 126, 234, 0.1);
+        border-left: 4px solid #667eea;
+        padding-left: 1rem;
+      }
+
+      .line-content {
+        margin-bottom: 0.5rem;
+      }
+
+      .line-validation {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(102, 126, 234, 0.2);
+      }
+
+      .hidden-word {
+        background-color: #ddd;
+        color: transparent;
+        border-radius: 3px;
+        padding: 2px 4px;
+        margin: 0 1px;
+        user-select: none;
+      }
+
+      .hidden-word.clickable {
+        cursor: pointer;
+      }
+
+      .hidden-word.clickable:hover {
+        background-color: #bbb;
+      }
+
+      .validation-buttons {
+        display: none;
+        margin-top: 1rem;
+        gap: 0.5rem;
+      }
+
+      .validation-buttons.show {
+        display: flex;
+      }
+
+      .success-btn {
+        background: #28a745;
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .fail-btn {
+        background: #dc3545;
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .progress-section {
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #e8f4fd;
+        border-radius: 8px;
+      }
+
+      @media (max-width: 768px) {
+        #app {
+          padding: 10px;
+        }
+        
+        main {
+          padding: 1rem;
+        }
+        
+        header h1 {
+          font-size: 2rem;
+        }
+        
+        .button-group {
+          flex-direction: column;
+        }
+        
+        button {
+          flex: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>📚 Apprentissage de Paroles</h1>
+        <p>Apprenez vos chansons préférées en cachant progressivement les mots</p>
+      </header>
+      
+      <main>
+        <section class="input-section">
+          <label for="lyrics-input">Collez vos paroles ici :</label>
+          <textarea 
+            id="lyrics-input" 
+            placeholder="Collez les paroles de votre chanson ici..."
+            rows="8"
+          ></textarea>
+        </section>
+
+        <section class="controls-section">
+          <div class="button-group">
+            <button id="start-learning" class="primary-btn">Commencer l'apprentissage</button>
+            <button id="reset-button" class="secondary-btn">Réinitialiser</button>
+          </div>
+        </section>
+
+        <section class="display-section">
+          <div id="lyrics-display" class="lyrics-container">
+            <div class="placeholder-text">
+              Entrez vos paroles ci-dessus et cliquez sur "Commencer l'apprentissage"
+            </div>
+          </div>
+        </section>
+
+        <section id="progress-section" class="progress-section">
+          <div class="progress-info">
+            <span>Ligne courante : <span id="current-line-num">1</span>/<span id="total-lines">1</span></span>
+            <span>Progression : <span id="progress-percentage">0</span>%</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      // Application complète sans modules ES6
+      class LyricsLearningApp {
+        constructor() {
+          this.lyrics = '';
+          this.parsedLines = [];
+          this.currentLineIndex = 0;
+          this.isLearningMode = false;
+          
+          this.initializeElements();
+          this.bindEvents();
+        }
+
+        initializeElements() {
+          this.lyricsInput = document.getElementById('lyrics-input');
+          this.startButton = document.getElementById('start-learning');
+          this.resetButton = document.getElementById('reset-button');
+          this.lyricsDisplay = document.getElementById('lyrics-display');
+          this.progressSection = document.getElementById('progress-section');
+          this.currentLineNum = document.getElementById('current-line-num');
+          this.totalLines = document.getElementById('total-lines');
+          this.progressPercentage = document.getElementById('progress-percentage');
+        }
+
+        bindEvents() {
+          this.startButton.addEventListener('click', () => this.startLearning());
+          this.resetButton.addEventListener('click', () => this.reset());
+        }
+
+        startLearning() {
+          const lyrics = this.lyricsInput.value.trim();
+          if (!lyrics) {
+            alert('Veuillez entrer des paroles de chanson');
+            return;
+          }
+
+          this.lyrics = lyrics;
+          this.parsedLines = this.parseText(lyrics);
+          this.currentLineIndex = 0;
+          this.isLearningMode = true;
+          
+          this.initializeLines();
+          this.renderLyrics();
+          this.updateProgress();
+          this.progressSection.style.display = 'block';
+        }
+
+        parseText(text) {
+          const lines = text.split('\n').filter(line => line.trim() !== '');
+          return lines.map((line) => {
+            const words = line.split(/\s+/).filter(word => word.trim() !== '');
+            return {
+              originalText: line,
+              words: words,
+              hiddenCount: 1, // Commencer avec le dernier mot caché
+              isCurrentLine: false,
+              hasValidationButtons: false, // Nouvelle propriété
+              hasBeenRevealed: false // Nouvelle propriété
+            };
+          });
+        }
+
+        initializeLines() {
+          this.parsedLines.forEach((line, index) => {
+            line.hiddenCount = 1; // Le dernier mot est toujours caché
+            line.isCurrentLine = index === 0;
+          });
+        }
+
+        renderLyrics() {
+          let html = '';
+          
+          this.parsedLines.forEach((line, lineIndex) => {
+            const isCurrentLine = lineIndex === this.currentLineIndex;
+            const lineClass = isCurrentLine ? 'lyrics-line current-line' : 'lyrics-line';
+            
+            let lineHtml = `<div class="${lineClass}" data-line="${lineIndex}">`;
+            lineHtml += '<div class="line-content">';
+            
+            line.words.forEach((word, wordIndex) => {
+              const isHidden = wordIndex >= (line.words.length - line.hiddenCount);
+              
+              if (isHidden && isCurrentLine) {
+                lineHtml += `<span class="hidden-word clickable" data-word="${wordIndex}">${'_'.repeat(word.length)}</span> `;
+              } else if (isHidden) {
+                lineHtml += `<span class="hidden-word">${'_'.repeat(word.length)}</span> `;
+              } else {
+                lineHtml += `${word} `;
+              }
+            });
+            
+            lineHtml += '</div>'; // Fermer line-content
+            
+            // Ajouter les boutons de validation DANS la ligne courante si elle a été révélée
+            if (isCurrentLine && line.hasValidationButtons) {
+              lineHtml += `
+                <div class="line-validation">
+                  <button class="success-btn" data-action="found">✓ J'ai trouvé</button>
+                  <button class="fail-btn" data-action="not-found">✗ Je n'ai pas trouvé</button>
+                </div>
+              `;
+            }
+            
+            lineHtml += '</div>'; // Fermer lyrics-line
+            html += lineHtml;
+          });
+
+          this.lyricsDisplay.innerHTML = html;
+          this.attachWordClickEvents();
+        }
+
+        attachWordClickEvents() {
+          const currentLine = this.lyricsDisplay.querySelector('.current-line');
+          if (currentLine) {
+            const hiddenWords = currentLine.querySelectorAll('.hidden-word.clickable');
+            hiddenWords.forEach(word => {
+              word.addEventListener('click', () => this.revealLine());
+            });
+          }
+        }
+
+        attachValidationEvents() {
+          const validationButtons = this.lyricsDisplay.querySelectorAll('.line-validation button');
+          validationButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+              const action = e.target.getAttribute('data-action');
+              this.handleValidation(action === 'found');
+            });
+          });
+        }
+
+        revealLine() {
+          const currentLine = this.parsedLines[this.currentLineIndex];
+          currentLine.hasValidationButtons = true;
+          currentLine.hasBeenRevealed = true;
+          
+          // Re-render pour afficher les boutons dans la ligne
+          this.renderLyrics();
+          
+          // Révéler le contenu de la ligne
+          const lineElement = this.lyricsDisplay.querySelector(`[data-line="${this.currentLineIndex}"] .line-content`);
+          if (lineElement) {
+            lineElement.innerHTML = currentLine.originalText;
+          }
+          
+          // Attacher les événements aux nouveaux boutons
+          this.attachValidationEvents();
+        }
+
+        handleValidation(found) {
+          const currentLine = this.parsedLines[this.currentLineIndex];
+          
+          if (found) {
+            // Augmenter le nombre de mots cachés (mais pas plus que le total)
+            if (currentLine.hiddenCount < currentLine.words.length) {
+              currentLine.hiddenCount++;
+            }
+          } else {
+            // Diminuer le nombre de mots cachés (mais garder au moins 1)
+            if (currentLine.hiddenCount > 1) {
+              currentLine.hiddenCount--;
+            }
+          }
+
+          // Réinitialiser l'état de la ligne courante
+          currentLine.hasValidationButtons = false;
+          currentLine.hasBeenRevealed = false;
+
+          // Passer à la ligne suivante
+          this.nextLine();
+        }
+
+        nextLine() {
+          // Passer à la ligne suivante (ou revenir au début)
+          this.currentLineIndex = (this.currentLineIndex + 1) % this.parsedLines.length;
+          
+          // Mettre à jour l'affichage
+          this.renderLyrics();
+          this.updateProgress();
+        }
+
+        updateProgress() {
+          const totalLines = this.parsedLines.length;
+          const currentLine = this.currentLineIndex + 1;
+          
+          this.currentLineNum.textContent = currentLine;
+          this.totalLines.textContent = totalLines;
+          
+          // Calculer le pourcentage basé sur les mots maîtrisés
+          let totalWords = 0;
+          let masteredWords = 0;
+          
+          this.parsedLines.forEach(line => {
+            totalWords += line.words.length;
+            masteredWords += line.hiddenCount;
+          });
+          
+          const percentage = Math.round((masteredWords / totalWords) * 100);
+          this.progressPercentage.textContent = percentage;
+        }
+
+        reset() {
+          this.isLearningMode = false;
+          this.lyricsInput.value = '';
+          this.lyricsDisplay.innerHTML = '<div class="placeholder-text">Entrez vos paroles ci-dessus et cliquez sur "Commencer l\'apprentissage"</div>';
+          this.progressSection.style.display = 'none';
+        }
+      }
+
+      // Initialiser l'application quand le DOM est chargé
+      document.addEventListener('DOMContentLoaded', () => {
+        new LyricsLearningApp();
+      });
+    </script>
+  </body>
+</html>
