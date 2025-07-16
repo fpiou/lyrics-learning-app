@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apprentissage de Paroles</title>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>📚 Apprentissage de Paroles</h1>
+        <p>Apprenez vos chansons préférées en cachant progressivement les mots</p>
+      </header>
+      
+      <main>
+        <section class="input-section">
+          <label for="lyrics-input">Collez vos paroles ici :</label>
+          <textarea 
+            id="lyrics-input" 
+            placeholder="Collez les paroles de votre chanson ici..."
+            rows="8"
+          ></textarea>
+        </section>
+
+        <section class="controls-section">
+          <div class="button-group">
+            <button id="start-learning" class="primary-btn">Commencer l'apprentissage</button>
+            <button id="reset-button" class="secondary-btn">Réinitialiser</button>
+          </div>
+        </section>
+
+        <section class="display-section">
+          <div id="lyrics-display" class="lyrics-container">
+            <p class="placeholder-text">Les paroles apparaîtront ici une fois que vous aurez collé du texte et cliqué sur "Appliquer"</p>
+          </div>
+          
+          <!-- Indicateur flottant de progression -->
+          <div id="floating-progress" class="floating-progress" style="display: none;">
+            <div class="progress-circle">
+              <span id="floating-percentage">0%</span>
+            </div>
+            <div class="progress-details">
+              <span id="floating-lines">0/0</span>
+              <span class="progress-label">lignes</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="progress-section">
+          <div class="progress-info">
+            <span>Lignes apprises : <span id="lines-completed">0</span></span>
+            <span>Lignes totales : <span id="total-lines">0</span></span>
+            <span>Niveau actuel : <span id="current-level">1 mot caché</span></span>
+          </div>
+        </section>
+      </main>
+    </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>l>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite App</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
