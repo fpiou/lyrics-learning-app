@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Lyrics Learning App</title>
+    <link rel="stylesheet" href="./assets/index-Cjd5O_a8.css">
+    <style>
+        .debug {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #f00;
+            color: white;
+            padding: 10px;
+            z-index: 9999;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug" id="debug">Debug: Page chargée</div>
+    
+    <div id="app">
+        <header>
+            <h1>📚 Apprentissage de Paroles (DEBUG)</h1>
+            <p>Version de débogage pour identifier les problèmes</p>
+        </header>
+        
+        <main>
+            <section class="input-section">
+                <label for="lyrics-input">Collez vos paroles ici :</label>
+                <textarea 
+                    id="lyrics-input" 
+                    placeholder="Collez les paroles de votre chanson ici..."
+                    rows="8"
+                ></textarea>
+            </section>
+
+            <section class="controls-section">
+                <div class="button-group">
+                    <button id="start-learning" class="primary-btn">Test Button</button>
+                    <button id="reset-button" class="secondary-btn">Reset</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        console.log('Script debug chargé');
+        document.getElementById('debug').innerHTML = 'Debug: Script chargé';
+        
+        // Test simple sans modules
+        document.getElementById('start-learning').addEventListener('click', function() {
+            console.log('Bouton cliqué !');
+            alert('Le bouton fonctionne !');
+            document.getElementById('debug').innerHTML = 'Debug: Bouton OK';
+        });
+        
+        // Test si le CSS est chargé
+        const testEl = document.createElement('div');
+        testEl.className = 'primary-btn';
+        document.body.appendChild(testEl);
+        const styles = window.getComputedStyle(testEl);
+        const bgColor = styles.backgroundColor;
+        document.body.removeChild(testEl);
+        
+        if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
+            document.getElementById('debug').innerHTML += ' | CSS: OK';
+        } else {
+            document.getElementById('debug').innerHTML += ' | CSS: FAIL';
+        }
+    </script>
+</body>
+</html>
