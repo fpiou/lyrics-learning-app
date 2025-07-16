@@ -10,18 +10,17 @@ class LyricsLearningApp {
     
     this.initializeElements();
     this.bindEvents();
-    this.setupMobileOptimizations();
   }
 
+  // Optimisations mobiles simplifiées
   setupMobileOptimizations() {
-    // Ajouter le support tactile pour une meilleure expérience mobile
-    document.body.addEventListener('touchstart', () => {}, { passive: true });
-    
-    // Prévenir le zoom automatique sur iOS
+    // Uniquement sur mobile : prévenir le zoom automatique sur iOS
     if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
       const inputs = document.querySelectorAll('input, textarea');
       inputs.forEach(input => {
-        input.style.fontSize = '16px';
+        if (input.style.fontSize === '' || parseFloat(input.style.fontSize) < 16) {
+          input.style.fontSize = '16px';
+        }
       });
     }
   }
@@ -46,9 +45,8 @@ class LyricsLearningApp {
     this.startButton.addEventListener('click', () => this.startLearning());
     this.resetButton.addEventListener('click', () => this.reset());
     
-    // Améliorer les événements tactiles pour mobile
-    this.startButton.addEventListener('touchend', () => this.startLearning(), { passive: true });
-    this.resetButton.addEventListener('touchend', () => this.reset(), { passive: true });
+    // Appeler les optimisations mobiles après que les éléments soient initialisés
+    this.setupMobileOptimizations();
   }
 
   startLearning() {

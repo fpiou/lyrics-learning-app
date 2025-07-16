@@ -5,35 +5,18 @@
   box-sizing: border-box;
 }
 
-html {
-  -webkit-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent;
-}
-
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   color: #333;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  touch-action: manipulation;
 }
 
-/* Amélioration pour mobile */
-button, input, textarea {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  border-radius: 0;
-  touch-action: manipulation;
-}
-
+/* Amélioration pour mobile - mais sans casser le desktop */
 button {
   -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  -webkit-user-select: none;
+  cursor: pointer;
 }
 
 #app {
