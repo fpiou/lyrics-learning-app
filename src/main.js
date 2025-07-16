@@ -10,6 +10,20 @@ class LyricsLearningApp {
     
     this.initializeElements();
     this.bindEvents();
+    this.setupMobileOptimizations();
+  }
+
+  setupMobileOptimizations() {
+    // Ajouter le support tactile pour une meilleure expérience mobile
+    document.body.addEventListener('touchstart', () => {}, { passive: true });
+    
+    // Prévenir le zoom automatique sur iOS
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+      const inputs = document.querySelectorAll('input, textarea');
+      inputs.forEach(input => {
+        input.style.fontSize = '16px';
+      });
+    }
   }
 
   initializeElements() {
@@ -31,6 +45,10 @@ class LyricsLearningApp {
   bindEvents() {
     this.startButton.addEventListener('click', () => this.startLearning());
     this.resetButton.addEventListener('click', () => this.reset());
+    
+    // Améliorer les événements tactiles pour mobile
+    this.startButton.addEventListener('touchend', () => this.startLearning(), { passive: true });
+    this.resetButton.addEventListener('touchend', () => this.reset(), { passive: true });
   }
 
   startLearning() {
