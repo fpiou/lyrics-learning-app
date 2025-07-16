@@ -168,17 +168,32 @@
         padding-left: 1rem;
       }
 
+      .line-content {
+        margin-bottom: 0.5rem;
+      }
+
+      .line-validation {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(102, 126, 234, 0.2);
+      }
+
       .hidden-word {
         background-color: #ddd;
         color: transparent;
-        cursor: pointer;
         border-radius: 3px;
         padding: 2px 4px;
         margin: 0 1px;
         user-select: none;
       }
 
-      .hidden-word:hover {
+      .hidden-word.clickable {
+        cursor: pointer;
+      }
+
+      .hidden-word.clickable:hover {
         background-color: #bbb;
       }
 
@@ -271,11 +286,6 @@
               Entrez vos paroles ci-dessus et cliquez sur "Commencer l'apprentissage"
             </div>
           </div>
-          
-          <div id="validation-buttons" class="validation-buttons">
-            <button id="found-btn" class="success-btn">✓ J'ai trouvé</button>
-            <button id="not-found-btn" class="fail-btn">✗ Je n'ai pas trouvé</button>
-          </div>
         </section>
 
         <section id="progress-section" class="progress-section">
@@ -306,9 +316,6 @@
           this.resetButton = document.getElementById('reset-button');
           this.lyricsDisplay = document.getElementById('lyrics-display');
           this.progressSection = document.getElementById('progress-section');
-          this.validationButtons = document.getElementById('validation-buttons');
-          this.foundBtn = document.getElementById('found-btn');
-          this.notFoundBtn = document.getElementById('not-found-btn');
           this.currentLineNum = document.getElementById('current-line-num');
           this.totalLines = document.getElementById('total-lines');
           this.progressPercentage = document.getElementById('progress-percentage');
@@ -317,8 +324,6 @@
         bindEvents() {
           this.startButton.addEventListener('click', () => this.startLearning());
           this.resetButton.addEventListener('click', () => this.reset());
-          this.foundBtn.addEventListener('click', () => this.handleValidation(true));
-          this.notFoundBtn.addEventListener('click', () => this.handleValidation(false));
         }
 
         startLearning() {
@@ -347,7 +352,9 @@
               originalText: line,
               words: words,
               hiddenCount: 1, // Commencer avec le dernier mot caché
-              isCurrentLine: false
+              isCurrentLine: false,
+              hasValidationButtons: false, // Nouvelle propriété
+              hasBeenRevealed: false // Nouvelle propriété
             };
           });
         }
@@ -367,12 +374,13 @@
             const lineClass = isCurrentLine ? 'lyrics-line current-line' : 'lyrics-line';
             
             let lineHtml = `<div class="${lineClass}" data-line="${lineIndex}">`;
+            lineHtml += '<div class="line-content">';
             
             line.words.forEach((word, wordIndex) => {
               const isHidden = wordIndex >= (line.words.length - line.hiddenCount);
               
               if (isHidden && isCurrentLine) {
-                lineHtml += `<span class="hidden-word" data-word="${wordIndex}">${'_'.repeat(word.length)}</span> `;
+                lineHtml += `<span class="hidden-word clickable" data-word="${wordIndex}">${'_'.repeat(word.length)}</span> `;
               } else if (isHidden) {
                 lineHtml += `<span class="hidden-word">${'_'.repeat(word.length)}</span> `;
               } else {
@@ -380,7 +388,19 @@
               }
             });
             
-            lineHtml += '</div>';
+            lineHtml += '</div>'; // Fermer line-content
+            
+            // Ajouter les boutons de validation DANS la ligne courante si elle a été révélée
+            if (isCurrentLine && line.hasValidationButtons) {
+              lineHtml += `
+                <div class="line-validation">
+                  <button class="success-btn" data-action="found">✓ J'ai trouvé</button>
+                  <button class="fail-btn" data-action="not-found">✗ Je n'ai pas trouvé</button>
+                </div>
+              `;
+            }
+            
+            lineHtml += '</div>'; // Fermer lyrics-line
             html += lineHtml;
           });
 
@@ -391,22 +411,39 @@
         attachWordClickEvents() {
           const currentLine = this.lyricsDisplay.querySelector('.current-line');
           if (currentLine) {
-            const hiddenWords = currentLine.querySelectorAll('.hidden-word');
+            const hiddenWords = currentLine.querySelectorAll('.hidden-word.clickable');
             hiddenWords.forEach(word => {
               word.addEventListener('click', () => this.revealLine());
             });
           }
         }
 
+        attachValidationEvents() {
+          const validationButtons = this.lyricsDisplay.querySelectorAll('.line-validation button');
+          validationButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+              const action = e.target.getAttribute('data-action');
+              this.handleValidation(action === 'found');
+            });
+          });
+        }
+
         revealLine() {
           const currentLine = this.parsedLines[this.currentLineIndex];
-          const lineElement = this.lyricsDisplay.querySelector(`[data-line="${this.currentLineIndex}"]`);
+          currentLine.hasValidationButtons = true;
+          currentLine.hasBeenRevealed = true;
           
-          // Révéler toute la ligne
-          lineElement.innerHTML = currentLine.originalText;
+          // Re-render pour afficher les boutons dans la ligne
+          this.renderLyrics();
           
-          // Afficher les boutons de validation
-          this.validationButtons.classList.add('show');
+          // Révéler le contenu de la ligne
+          const lineElement = this.lyricsDisplay.querySelector(`[data-line="${this.currentLineIndex}"] .line-content`);
+          if (lineElement) {
+            lineElement.innerHTML = currentLine.originalText;
+          }
+          
+          // Attacher les événements aux nouveaux boutons
+          this.attachValidationEvents();
         }
 
         handleValidation(found) {
@@ -424,14 +461,15 @@
             }
           }
 
+          // Réinitialiser l'état de la ligne courante
+          currentLine.hasValidationButtons = false;
+          currentLine.hasBeenRevealed = false;
+
           // Passer à la ligne suivante
           this.nextLine();
         }
 
         nextLine() {
-          // Masquer les boutons de validation
-          this.validationButtons.classList.remove('show');
-          
           // Passer à la ligne suivante (ou revenir au début)
           this.currentLineIndex = (this.currentLineIndex + 1) % this.parsedLines.length;
           
@@ -465,7 +503,6 @@
           this.lyricsInput.value = '';
           this.lyricsDisplay.innerHTML = '<div class="placeholder-text">Entrez vos paroles ci-dessus et cliquez sur "Commencer l\'apprentissage"</div>';
           this.progressSection.style.display = 'none';
-          this.validationButtons.classList.remove('show');
         }
       }
 
