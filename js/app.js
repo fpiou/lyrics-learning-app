@@ -9,6 +9,8 @@ class LyricsLearningApp {
     this.isLearningMode = false;
     this.currentSongId = null;
     this.songTitle = '';
+    this.scrollTimer = null;
+    this.isAutoScrolling = false; // Flag pour ignorer le scroll automatique
     
     this.initializeElements();
     this.bindEvents();
@@ -57,6 +59,9 @@ class LyricsLearningApp {
     this.songTitleInput.addEventListener('input', () => this.autoSave());
     this.lyricsInput.addEventListener('input', () => this.autoSave());
     
+    // Gérer le scroll pour masquer/afficher l'indicateur flottant
+    window.addEventListener('scroll', () => this.handleScroll());
+    
     // Appeler les optimisations mobiles après que les éléments soient initialisés
     this.setupMobileOptimizations();
   }
@@ -92,7 +97,7 @@ class LyricsLearningApp {
     this.renderLyrics();
     this.updateProgress();
     this.progressSection.style.display = 'block';
-    this.floatingProgress.style.display = 'flex';
+    this.showFloatingProgress();
     this.scrollToCurrentLine();
     
     // Sauvegarder automatiquement la chanson
@@ -301,6 +306,9 @@ class LyricsLearningApp {
     // Sauvegarder automatiquement la progression
     this.autoSave();
     
+    // Afficher l'indicateur flottant après validation
+    this.showFloatingProgress();
+    
     // Passer à la ligne suivante
     this.moveToNextLine();
   }
@@ -361,11 +369,19 @@ class LyricsLearningApp {
   scrollToCurrentLine() {
     const currentLineElement = document.querySelector('.current-line');
     if (currentLineElement) {
+      // Marquer qu'on est en train de faire un scroll automatique
+      this.isAutoScrolling = true;
+      
       currentLineElement.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
         inline: 'nearest'
       });
+      
+      // Réinitialiser le flag après un délai pour permettre au scroll de se terminer
+      setTimeout(() => {
+        this.isAutoScrolling = false;
+      }, 1000); // Délai plus long que le scroll smooth
     }
   }
 
@@ -618,9 +634,10 @@ class LyricsLearningApp {
     this.renderLyrics();
     this.updateProgress();
     this.progressSection.style.display = 'block';
-    this.floatingProgress.style.display = 'flex';
+    this.showFloatingProgress();
     
     // Faire défiler vers le haut puis vers la ligne courante
+    this.isAutoScrolling = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
     // Délai pour s'assurer que le rendu est terminé avant de centrer sur la ligne courante
@@ -784,6 +801,31 @@ class LyricsLearningApp {
             '3. Autorisez le stockage local pour ce site\n' +
             '4. Rechargez la page après les changements');
     }, 1500);
+  }
+  
+  // Gérer le scroll pour masquer l'indicateur flottant
+  handleScroll() {
+    if (!this.isLearningMode || this.isAutoScrolling) return;
+    
+    // Masquer l'indicateur flottant immédiatement lors du scroll manuel
+    if (this.floatingProgress) {
+      this.floatingProgress.style.display = 'none';
+    }
+    
+    // Annuler le timer précédent s'il existe
+    if (this.scrollTimer) {
+      clearTimeout(this.scrollTimer);
+    }
+    
+    // Ne pas réafficher automatiquement après le scroll
+    // L'indicateur ne réapparaîtra que lors d'actions spécifiques
+  }
+  
+  // Afficher l'indicateur flottant (appelé lors d'actions spécifiques)
+  showFloatingProgress() {
+    if (this.isLearningMode && this.floatingProgress) {
+      this.floatingProgress.style.display = 'flex';
+    }
   }
 }
 
