@@ -1,0 +1,472 @@
+/* CSS pour l'application d'apprentissage de paroles */
+
+/* Reset et base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: #333;
+}
+
+/* Amélioration pour mobile - mais sans casser le desktop */
+button {
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+#app {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: white;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* Sections */
+main {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+section {
+  margin-bottom: 2rem;
+}
+
+section:last-child {
+  margin-bottom: 0;
+}
+
+/* Input Section */
+.input-section label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #555;
+}
+
+#lyrics-input {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+#lyrics-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Controls Section */
+.controls-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 10px;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 44px; /* Amélioration mobile */
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.secondary-btn {
+  background: #f8f9fa;
+  color: #555;
+  border: 2px solid #e1e5e9;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 44px; /* Amélioration mobile */
+}
+
+.secondary-btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* Display Section */
+.display-section {
+  position: relative;
+}
+
+.lyrics-container {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  padding: 2rem;
+  min-height: 300px;
+  position: relative;
+}
+
+.placeholder-text {
+  color: #6c757d;
+  font-style: italic;
+  text-align: center;
+  margin-top: 50px;
+}
+
+/* Lyrics Display */
+.lyrics-line {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(102, 126, 234, 0.05);
+  transition: all 0.3s ease;
+  opacity: 0.6; /* Toutes les lignes en opacité réduite par défaut */
+  position: relative;
+}
+
+.lyrics-line:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.lyrics-line.current-line {
+  border: 2px solid #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  opacity: 1 !important; /* Force l'opacité complète pour la ligne courante */
+  font-weight: 500;
+}
+
+.lyrics-line.completed-line {
+  background: rgba(40, 167, 69, 0.05);
+  border-left: 4px solid #28a745;
+  /* Garde l'opacité réduite (0.6) définie dans .lyrics-line */
+}
+
+.line-content {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+  display: block;
+  width: 100%;
+}
+
+.word {
+  display: inline-block;
+  margin: 2px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.word.hidden {
+  background: #667eea;
+  color: white;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 4px;
+}
+
+.word.hidden.clickable {
+  cursor: pointer;
+  background: #667eea;
+}
+
+.word.hidden.clickable:hover {
+  background: #5a6fd8;
+  transform: scale(1.05);
+}
+
+.word.revealed {
+  background: #28a745;
+  color: white;
+  border-radius: 4px;
+  padding: 2px 4px;
+  animation: reveal 0.5s ease;
+}
+
+@keyframes reveal {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.word-placeholder {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  height: 0.9em;
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  top: -0.05em;
+  min-width: 1ch;
+  opacity: 0.8;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  vertical-align: baseline;
+}
+
+.word.clickable .word-placeholder:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+/* Line Validation */
+.line-validation {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+
+.validation-btn {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.validation-btn:hover {
+  transform: translateY(-1px);
+}
+
+.success-btn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.success-btn:hover {
+  background: linear-gradient(135deg, #20c997, #17a2b8);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.fail-btn {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+}
+
+.fail-btn:hover {
+  background: linear-gradient(135deg, #c82333, #a71e2a);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* Progress Section */
+.progress-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 1.5rem;
+  border-radius: 10px;
+  display: none;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.progress-info span {
+  font-weight: 600;
+  color: #495057;
+}
+
+/* Floating Progress Indicator */
+.floating-progress {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 15px;
+  padding: 1rem;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1000;
+  border: 3px solid #667eea;
+}
+
+.progress-circle {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: conic-gradient(#667eea var(--progress-angle, 0deg), #e9ecef var(--progress-angle, 0deg));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #667eea;
+  font-size: 0.9rem;
+}
+
+.progress-circle::before {
+  content: '';
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  background: white;
+  border-radius: 50%;
+}
+
+.progress-circle span {
+  position: relative;
+  z-index: 1;
+}
+
+.progress-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.progress-details span:first-child {
+  font-weight: bold;
+  color: #667eea;
+}
+
+.progress-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  #app {
+    padding: 10px;
+  }
+
+  main {
+    padding: 1rem;
+  }
+
+  header h1 {
+    font-size: 2rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .primary-btn, .secondary-btn {
+    width: 100%;
+  }
+
+  .progress-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .floating-progress {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 0.75rem;
+    width: auto;
+    max-width: calc(100vw - 20px);
+  }
+
+  .progress-circle {
+    width: 50px;
+    height: 50px;
+  }
+
+  .progress-circle::before {
+    width: 38px;
+    height: 38px;
+  }
+
+  .progress-details {
+    font-size: 0.9rem;
+  }
+
+  .lyrics-line {
+    padding: 0.5rem;
+  }
+
+  .line-validation {
+    display: flex;
+    margin-left: 0;
+    margin-top: 0.5rem;
+    justify-content: center;
+  }
+
+  .validation-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+}
+
+/* Améliorations pour l'accessibilité */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Optimisation pour les écrans tactiles */
+@media (pointer: coarse) {
+  .word.hidden.clickable {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

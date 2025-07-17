@@ -52,51 +52,57 @@ Cette application permet d'apprendre efficacement les paroles de chansons en uti
 
 ### Prérequis
 
-- Node.js (version 14 ou supérieure)
-- npm ou yarn
+- Un navigateur web moderne
+- Un serveur web local (optionnel pour le développement)
 
 ### Installation
 
-\`\`\`bash
+```bash
 # Cloner le projet
 git clone <url-du-repo>
-cd apprentissage-paroles
+cd lyrics-learning-app
 
-# Installer les dépendances
-npm install
+# Ouvrir directement index.html dans un navigateur
+# OU utiliser un serveur local simple
+python -m http.server 8000
+# OU
+npx serve .
+```
 
-# Démarrer le serveur de développement
-npm run dev
-\`\`\`
+### Développement
+
+L'application est entièrement contenue dans un seul fichier `index.html` avec CSS et JavaScript intégrés. Pour développer :
+
+1. Ouvrez `index.html` dans votre éditeur
+2. Modifiez le code directement dans le fichier
+3. Rechargez la page dans le navigateur pour voir les changements
 
 ### Scripts disponibles
 
-- \`npm run dev\` - Démarrer le serveur de développement
-- \`npm run build\` - Construire pour la production
-- \`npm run preview\` - Prévisualiser la version de production
+Aucun script de build n'est nécessaire. L'application fonctionne directement dans le navigateur.
 
 ## 🏗️ Structure du projet
 
-\`\`\`
-src/
-├── main.js          # Logique principale de l'application
-├── style.css        # Styles CSS
-└── ...
-
-public/
-├── vite.svg         # Logo Vite
-└── ...
-
-index.html           # Point d'entrée HTML
-package.json         # Configuration npm
-\`\`\`
+```
+lyrics-learning-app/
+├── index.html           # Point d'entrée HTML
+├── css/
+│   └── styles.css      # Styles CSS de l'application
+├── js/
+│   └── app.js          # Logique JavaScript
+├── README.md           # Documentation utilisateur
+├── DEV_GUIDE.md        # Guide de développement
+├── LICENSE             # Licence du projet
+└── .github/
+    └── copilot-instructions.md  # Instructions Copilot
+```
 
 ## 🎨 Technologies utilisées
 
-- **Vite** : Build tool moderne et rapide
+- **HTML5** : Structure sémantique et application complète
+- **CSS3** : Animations et design responsive intégrés
 - **Vanilla JavaScript** : Logique pure sans frameworks
-- **CSS3** : Animations et design responsive
-- **HTML5** : Structure sémantique
+- **Application standalone** : Aucun build tool requis
 
 ## 📱 Responsive Design
 
@@ -115,6 +121,7 @@ L'application s'adapte à tous les écrans :
 - **Gestion d'état avancée** : Suivi précis des lignes maîtrisées et du niveau de difficulté
 - **Animations fluides** : Transitions CSS pour une expérience utilisateur optimale avec placeholders adaptatifs et focus visuel sur la ligne active
 - **Responsive design** : Adaptation parfaite à tous les écrans
+- **Application standalone** : Fonctionne directement dans le navigateur sans installation
 
 ## 🤝 Contribution
 
