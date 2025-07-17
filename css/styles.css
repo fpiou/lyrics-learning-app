@@ -485,6 +485,17 @@ section:last-child {
   flex-direction: column;
 }
 
+.progress-details .song-title {
+  font-weight: bold;
+  color: #667eea;
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .progress-details span:first-child {
   font-weight: bold;
   color: #667eea;

@@ -12,7 +12,9 @@ class LyricsLearningApp {
     
     this.initializeElements();
     this.bindEvents();
+    this.checkStorageAvailability();
     this.loadSavedSongs();
+    this.loadLastActiveSong();
   }
 
   // Optimisations mobiles simplifiées
@@ -44,6 +46,7 @@ class LyricsLearningApp {
     this.floatingProgress = document.getElementById('floating-progress');
     this.floatingPercentage = document.getElementById('floating-percentage');
     this.floatingLines = document.getElementById('floating-lines');
+    this.floatingSongTitle = document.getElementById('floating-song-title');
   }
 
   bindEvents() {
@@ -369,7 +372,8 @@ class LyricsLearningApp {
     
     // Mettre à jour l'indicateur flottant
     this.floatingPercentage.textContent = `${linesPercentage}%`;
-    this.floatingLines.textContent = `${learnedLines}/${totalLines}`;
+    this.floatingLines.textContent = `${learnedLines}/${totalLines} lignes`;
+    this.floatingSongTitle.textContent = this.songTitle || '';
     
     // Mettre à jour l'angle du cercle de progression (CSS custom property)
     const progressAngle = (linesPercentage / 100) * 360;
@@ -394,6 +398,67 @@ class LyricsLearningApp {
 
   // Méthodes de sauvegarde et gestion des chansons
   
+  // Vérifier la disponibilité du localStorage au démarrage
+  checkStorageAvailability() {
+    if (!this.isLocalStorageAvailable()) {
+      console.warn('localStorage non disponible - sauvegarde désactivée');
+      // Optionnel : afficher un message d'avertissement à l'utilisateur
+      setTimeout(() => {
+        alert('⚠️ La sauvegarde n\'est pas disponible sur ce navigateur. Vérifiez que vous n\'êtes pas en mode privé.');
+      }, 1000);
+    } else {
+      console.log('localStorage disponible - sauvegarde activée');
+    }
+  }
+  
+  // Vérifier la disponibilité du localStorage
+  isLocalStorageAvailable() {
+    try {
+      const testKey = 'localStorage_test';
+      localStorage.setItem(testKey, 'test');
+      localStorage.removeItem(testKey);
+      return true;
+    } catch (e) {
+      console.error('localStorage non disponible:', e);
+      return false;
+    }
+  }
+  
+  // Fonction sécurisée pour lire dans localStorage
+  safeLocalStorageGet(key) {
+    try {
+      if (!this.isLocalStorageAvailable()) {
+        console.warn('localStorage non disponible');
+        return null;
+      }
+      return localStorage.getItem(key);
+    } catch (e) {
+      console.error('Erreur lors de la lecture localStorage:', e);
+      return null;
+    }
+  }
+  
+  // Fonction sécurisée pour écrire dans localStorage
+  safeLocalStorageSet(key, value) {
+    try {
+      if (!this.isLocalStorageAvailable()) {
+        console.warn('localStorage non disponible');
+        alert('La sauvegarde n\'est pas disponible sur ce navigateur. Veuillez vérifier que vous n\'êtes pas en mode privé.');
+        return false;
+      }
+      localStorage.setItem(key, value);
+      return true;
+    } catch (e) {
+      console.error('Erreur lors de l\'écriture localStorage:', e);
+      if (e.name === 'QuotaExceededError') {
+        alert('Espace de stockage insuffisant. Veuillez supprimer quelques chansons sauvegardées.');
+      } else {
+        alert('Erreur de sauvegarde. Veuillez vérifier que vous n\'êtes pas en mode privé.');
+      }
+      return false;
+    }
+  }
+  
   generateSongId(title, lyrics) {
     // Générer un ID unique basé sur le titre et un hash simple du contenu
     const hash = lyrics.split('').reduce((a, b) => {
@@ -404,8 +469,15 @@ class LyricsLearningApp {
   }
   
   getSavedSongs() {
-    const saved = localStorage.getItem('lyricsLearningApp_songs');
-    return saved ? JSON.parse(saved) : {};
+    try {
+      const saved = this.safeLocalStorageGet('lyricsLearningApp_songs');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      console.error('Erreur lors du parsing des chansons sauvegardées:', e);
+      // En cas d'erreur, supprimer les données corrompues et retourner un objet vide
+      this.safeLocalStorageSet('lyricsLearningApp_songs', '{}');
+      return {};
+    }
   }
   
   saveSong() {
@@ -431,10 +503,11 @@ class LyricsLearningApp {
     };
     
     savedSongs[songId] = songData;
-    localStorage.setItem('lyricsLearningApp_songs', JSON.stringify(savedSongs));
     
-    this.loadSavedSongs();
-    alert('Chanson sauvegardée avec succès !');
+    if (this.safeLocalStorageSet('lyricsLearningApp_songs', JSON.stringify(savedSongs))) {
+      this.loadSavedSongs();
+      alert('Chanson sauvegardée avec succès !');
+    }
   }
   
   autoSave() {
@@ -444,8 +517,9 @@ class LyricsLearningApp {
       if (savedSongs[this.currentSongId]) {
         savedSongs[this.currentSongId].progress = this.parsedLines;
         savedSongs[this.currentSongId].currentLineIndex = this.currentLineIndex;
+        savedSongs[this.currentSongId].isLearningMode = this.isLearningMode;
         savedSongs[this.currentSongId].lastModified = new Date().toISOString();
-        localStorage.setItem('lyricsLearningApp_songs', JSON.stringify(savedSongs));
+        this.safeLocalStorageSet('lyricsLearningApp_songs', JSON.stringify(savedSongs));
       }
     }
   }
@@ -524,25 +598,27 @@ class LyricsLearningApp {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette chanson ?')) {
       const savedSongs = this.getSavedSongs();
       delete savedSongs[songId];
-      localStorage.setItem('lyricsLearningApp_songs', JSON.stringify(savedSongs));
-      this.loadSavedSongs();
       
-      // Si c'est la chanson actuellement chargée, la réinitialiser
-      if (this.currentSongId === songId) {
-        this.lyrics = '';
-        this.parsedLines = [];
-        this.currentLineIndex = 0;
-        this.isLearningMode = false;
-        this.currentSongId = null;
-        this.songTitle = '';
+      if (this.safeLocalStorageSet('lyricsLearningApp_songs', JSON.stringify(savedSongs))) {
+        this.loadSavedSongs();
         
-        this.songTitleInput.value = '';
-        this.lyricsInput.value = '';
-        this.lyricsDisplay.innerHTML = '<p class="placeholder-text">Les paroles apparaîtront ici une fois que vous aurez collé du texte et cliqué sur "Commencer l\'apprentissage"</p>';
-        this.progressSection.style.display = 'none';
-        this.floatingProgress.style.display = 'none';
-        
-        this.updateProgress();
+        // Si c'est la chanson actuellement chargée, la réinitialiser
+        if (this.currentSongId === songId) {
+          this.lyrics = '';
+          this.parsedLines = [];
+          this.currentLineIndex = 0;
+          this.isLearningMode = false;
+          this.currentSongId = null;
+          this.songTitle = '';
+          
+          this.songTitleInput.value = '';
+          this.lyricsInput.value = '';
+          this.lyricsDisplay.innerHTML = '<p class="placeholder-text">Les paroles apparaîtront ici une fois que vous aurez collé du texte et cliqué sur "Commencer l\'apprentissage"</p>';
+          this.progressSection.style.display = 'none';
+          this.floatingProgress.style.display = 'none';
+          
+          this.updateProgress();
+        }
       }
     }
   }
@@ -591,6 +667,35 @@ class LyricsLearningApp {
     }).join('');
     
     this.savedSongsList.innerHTML = songsHTML;
+  }
+  
+  // Charger la dernière chanson active au démarrage
+  loadLastActiveSong() {
+    const savedSongs = this.getSavedSongs();
+    const songIds = Object.keys(savedSongs);
+    
+    if (songIds.length === 0) return;
+    
+    // Trouver la chanson avec la date de modification la plus récente
+    let lastActiveSong = null;
+    let lastModified = 0;
+    
+    songIds.forEach(songId => {
+      const song = savedSongs[songId];
+      const songModified = new Date(song.lastModified || 0).getTime();
+      if (songModified > lastModified) {
+        lastModified = songModified;
+        lastActiveSong = song;
+      }
+    });
+    
+    // Charger la chanson si elle était en cours d'apprentissage
+    if (lastActiveSong && lastActiveSong.isLearningMode) {
+      // Petite pause pour laisser le temps au DOM de se charger
+      setTimeout(() => {
+        this.loadSong(lastActiveSong.id);
+      }, 100);
+    }
   }
 }
 
