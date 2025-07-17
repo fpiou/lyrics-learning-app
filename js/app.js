@@ -410,12 +410,29 @@ class LyricsLearningApp {
   checkStorageAvailability() {
     if (!this.isLocalStorageAvailable()) {
       console.warn('localStorage non disponible - sauvegarde désactivée');
-      // Optionnel : afficher un message d'avertissement à l'utilisateur
+      // Message d'avertissement plus détaillé pour le débogage mobile
       setTimeout(() => {
-        alert('⚠️ La sauvegarde n\'est pas disponible sur ce navigateur. Vérifiez que vous n\'êtes pas en mode privé.');
+        const userAgent = navigator.userAgent;
+        const isBrave = userAgent.includes('Brave') || (navigator.brave && navigator.brave.isBrave);
+        const isPrivate = !this.isLocalStorageAvailable();
+        
+        let message = '⚠️ Problème de sauvegarde détecté:\n';
+        message += `Navigateur: ${isBrave ? 'Brave' : 'Autre'}\n`;
+        message += `Mode privé: ${isPrivate ? 'Possible' : 'Non'}\n`;
+        message += 'Solutions:\n';
+        message += '- Vérifiez que vous n\'êtes pas en mode privé\n';
+        message += '- Rechargez la page\n';
+        message += '- Essayez un autre navigateur si le problème persiste';
+        
+        alert(message);
       }, 1000);
     } else {
       console.log('localStorage disponible - sauvegarde activée');
+      // Test supplémentaire pour Brave
+      if (navigator.userAgent.includes('Brave') || (navigator.brave && navigator.brave.isBrave)) {
+        console.log('Navigateur Brave détecté - test de sauvegarde...');
+        this.testBraveCompatibility();
+      }
     }
   }
   
@@ -454,14 +471,42 @@ class LyricsLearningApp {
         alert('La sauvegarde n\'est pas disponible sur ce navigateur. Veuillez vérifier que vous n\'êtes pas en mode privé.');
         return false;
       }
+      
+      // Test spécial pour Brave - vérifier la taille des données
+      if (navigator.userAgent.includes('Brave') || (navigator.brave && navigator.brave.isBrave)) {
+        const dataSize = new Blob([value]).size;
+        console.log(`Brave: tentative de sauvegarde de ${dataSize} octets`);
+        
+        if (dataSize > 1024 * 1024) { // Plus de 1MB
+          console.warn('Brave: données volumineuses, risque de blocage');
+        }
+      }
+      
       localStorage.setItem(key, value);
+      
+      // Vérification immédiate pour Brave
+      const verified = localStorage.getItem(key);
+      if (!verified || verified !== value) {
+        throw new Error('Échec de vérification localStorage');
+      }
+      
       return true;
     } catch (e) {
       console.error('Erreur lors de l\'écriture localStorage:', e);
-      if (e.name === 'QuotaExceededError') {
-        alert('Espace de stockage insuffisant. Veuillez supprimer quelques chansons sauvegardées.');
+      
+      // Messages d'erreur spécifiques selon le navigateur
+      if (navigator.userAgent.includes('Brave') || (navigator.brave && navigator.brave.isBrave)) {
+        if (e.name === 'QuotaExceededError') {
+          alert('Brave: Espace de stockage insuffisant. Videz le cache ou supprimez des chansons.');
+        } else {
+          alert('Brave: Erreur de sauvegarde. Vérifiez les boucliers Brave et les paramètres de confidentialité.');
+        }
       } else {
-        alert('Erreur de sauvegarde. Veuillez vérifier que vous n\'êtes pas en mode privé.');
+        if (e.name === 'QuotaExceededError') {
+          alert('Espace de stockage insuffisant. Veuillez supprimer quelques chansons sauvegardées.');
+        } else {
+          alert('Erreur de sauvegarde. Veuillez vérifier que vous n\'êtes pas en mode privé.');
+        }
       }
       return false;
     }
@@ -559,9 +604,9 @@ class LyricsLearningApp {
       this.parsedLines.forEach((line, index) => {
         if (songData.progress[index]) {
           line.hiddenCount = songData.progress[index].hiddenCount || 1;
-          line.isLearned = songData.progress[index].isLearned || false;
+          line.isLearned = false; // Remettre à zéro le statut d'apprentissage
           line.hasBeenRevealed = songData.progress[index].hasBeenRevealed || false;
-          line.hasIncrementedCounter = songData.progress[index].hasIncrementedCounter || false;
+          line.hasIncrementedCounter = false; // Remettre à zéro le compteur d'incrémentation
         }
       });
     }
@@ -706,6 +751,39 @@ class LyricsLearningApp {
         this.loadSong(lastActiveSong.id);
       }, 100);
     }
+  }
+  
+  // Test spécifique pour la compatibilité Brave
+  testBraveCompatibility() {
+    try {
+      const testData = { test: 'brave_compatibility', timestamp: Date.now() };
+      const testKey = 'brave_test_' + Math.random();
+      
+      localStorage.setItem(testKey, JSON.stringify(testData));
+      const retrieved = localStorage.getItem(testKey);
+      
+      if (retrieved && JSON.parse(retrieved).test === 'brave_compatibility') {
+        console.log('✅ Test Brave réussi - sauvegarde fonctionnelle');
+        localStorage.removeItem(testKey);
+      } else {
+        console.warn('⚠️ Test Brave échoué - problème de sauvegarde');
+        this.showBraveWarning();
+      }
+    } catch (e) {
+      console.error('❌ Erreur dans le test Brave:', e);
+      this.showBraveWarning();
+    }
+  }
+  
+  // Afficher un avertissement spécifique à Brave
+  showBraveWarning() {
+    setTimeout(() => {
+      alert('⚠️ Brave détecté avec problèmes de sauvegarde:\n\n' +
+            '1. Vérifiez les paramètres de confidentialité\n' +
+            '2. Désactivez temporairement les boucliers Brave\n' +
+            '3. Autorisez le stockage local pour ce site\n' +
+            '4. Rechargez la page après les changements');
+    }, 1500);
   }
 }
 
