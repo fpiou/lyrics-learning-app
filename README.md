@@ -11,7 +11,7 @@ Cette application permet d'apprendre efficacement les paroles de chansons en uti
 - **Apprentissage ligne par ligne** : Une seule ligne active à la fois pour un apprentissage concentré
 - **Masquage intelligent** : Les mots sont cachés dans l'ordre inverse avec des placeholders de taille adaptée, le dernier mot étant toujours caché
 - **Révélation par clic** : Cliquez sur n'importe quel mot caché pour révéler toute la ligne
-- **Validation interactive** : Boutons "✓ J'ai trouvé" et "✗ Je n'ai pas trouvé" pour auto-évaluer
+- **Validation interactive** : Boutons "👎" et "👍" pour s'auto-évaluer
 - **Progression adaptative** : Plus vous réussissez, plus de mots sont cachés dans les lignes suivantes
 - **Cycle continu** : Retour automatique à la première ligne après la dernière pour un apprentissage jusqu'à 100%
 - **Suivi de progression** : Pourcentage de mots de la chanson maîtrisés et nombre de lignes complétées
@@ -26,11 +26,11 @@ Cette application permet d'apprendre efficacement les paroles de chansons en uti
 3. **Ligne courante** : La première ligne est mise en surbrillance et devient interactive
 4. **Révéler les mots** : Cliquez sur n'importe quel placeholder coloré pour révéler toute la ligne
 5. **Auto-évaluation** : 
-   - **✓ J'ai trouvé** : Si vous aviez deviné les mots → un mot de plus sera caché dans les prochaines lignes
-   - **✗ Je n'ai pas trouvé** : Si vous n'aviez pas deviné → un mot de moins sera caché (minimum 1)
+   - **👍** : Si vous aviez deviné les mots → un mot de plus sera caché dans les prochaines lignes
+   - **👎** : Si vous n'aviez pas deviné → un mot de moins sera caché (minimum 1)
 6. **Progression automatique** : Passage automatique à la ligne suivante avec défilement centré
 7. **Cycle complet** : Après la dernière ligne, retour à la première pour continuer l'apprentissage jusqu'à 100%
-8. **Suivi** : Observez le pourcentage de mots de la chanson que vous maîtrisez augmenter progressivement
+8. **Suivi** : Observez le pourcentage de lignes de la chanson que vous maîtrisez augmenter progressivement
 
 ## 📈 Système d'apprentissage
 
@@ -38,7 +38,7 @@ Cette application permet d'apprendre efficacement les paroles de chansons en uti
 - **Ligne courante** : Une seule ligne active à la fois (première ligne au début)
 - **Masquage** : Mots cachés dans l'ordre inverse, dernier mot toujours caché
 - **Révélation** : Clic sur un mot → révèle tous les mots cachés de la ligne
-- **Validation** : Choix entre "J'ai trouvé" ou "Je n'ai pas trouvé"
+- **Validation** : Choix entre 👍 (si vous aviez deviné) ou 👎 (si vous n'aviez pas deviné)
 - **Adaptation** : Le niveau de difficulté s'ajuste selon vos réussites
 - **Continuité** : Retour à la première ligne après la dernière pour un apprentissage jusqu'à maîtrise complète (100%)
 
