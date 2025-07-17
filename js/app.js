@@ -132,7 +132,8 @@ class LyricsLearningApp {
         isCompleted: false,
         hasValidationButtons: false,
         hasBeenRevealed: false, // Nouvelle propriété pour tracker si la ligne a été révélée
-        isLearned: false // Nouvelle propriété pour tracker si la ligne est apprise (tous mots cachés + trouvé)
+        isLearned: false, // Nouvelle propriété pour tracker si la ligne est apprise (tous mots cachés + trouvé)
+        hasIncrementedCounter: false // Nouvelle propriété pour tracker si cette ligne a fait incrémenter le compteur
       };
     });
   }
@@ -270,9 +271,10 @@ class LyricsLearningApp {
       // Vérifier si tous les mots étaient cachés avant de dire "J'ai trouvé"
       const allWordsWereHidden = line.hiddenCount >= line.wordElements.length;
       
-      if (allWordsWereHidden) {
-        // Marquer la ligne comme apprise
+      if (allWordsWereHidden && !line.hasIncrementedCounter) {
+        // Marquer la ligne comme apprise ET mémoriser qu'elle a fait incrémenter le compteur
         line.isLearned = true;
+        line.hasIncrementedCounter = true;
       }
       
       // L'utilisateur a trouvé : cacher un mot de plus (le précédent du premier caché)
@@ -280,6 +282,12 @@ class LyricsLearningApp {
         line.hiddenCount++;
       }
     } else if (action === 'not-found') {
+      // Si la ligne avait fait incrémenter le compteur, la désapprendre et décrémenter
+      if (line.hasIncrementedCounter) {
+        line.isLearned = false;
+        line.hasIncrementedCounter = false;
+      }
+      
       // L'utilisateur n'a pas trouvé : cacher un mot de moins (mais minimum 1)
       if (line.hiddenCount > 1) {
         line.hiddenCount--;
@@ -553,6 +561,7 @@ class LyricsLearningApp {
           line.hiddenCount = songData.progress[index].hiddenCount || 1;
           line.isLearned = songData.progress[index].isLearned || false;
           line.hasBeenRevealed = songData.progress[index].hasBeenRevealed || false;
+          line.hasIncrementedCounter = songData.progress[index].hasIncrementedCounter || false;
         }
       });
     }
@@ -587,6 +596,7 @@ class LyricsLearningApp {
         if (songData.progress[index]) {
           line.hiddenCount = songData.progress[index].hiddenCount || 1;
           line.isLearned = songData.progress[index].isLearned || false;
+          line.hasIncrementedCounter = songData.progress[index].hasIncrementedCounter || false;
         }
       });
       
