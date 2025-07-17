@@ -20,6 +20,14 @@
       
       <main>
         <section class="input-section">
+          <label for="song-title">Titre de la chanson :</label>
+          <input 
+            type="text" 
+            id="song-title" 
+            placeholder="Entrez le titre de la chanson..."
+            value="La Cigale et la Fourmi"
+          />
+          
           <label for="lyrics-input">Collez vos paroles ici :</label>
           <textarea 
             id="lyrics-input" 
@@ -49,10 +57,17 @@ Je chantais, ne vous déplaise.
 Eh bien! dansez maintenant.</textarea>
         </section>
 
+        <section class="songs-section">
+          <h3>Mes chansons sauvegardées</h3>
+          <div id="saved-songs" class="saved-songs-list">
+            <!-- Les chansons sauvegardées apparaîtront ici -->
+          </div>
+        </section>
+
         <section class="controls-section">
           <div class="button-group">
             <button id="start-learning" class="primary-btn">Commencer l'apprentissage</button>
-            <button id="reset-button" class="secondary-btn">Réinitialiser</button>
+            <button id="save-song" class="secondary-btn">Sauvegarder la chanson</button>
           </div>
         </section>
 

@@ -7,9 +7,12 @@ class LyricsLearningApp {
     this.parsedLines = [];
     this.currentLineIndex = 0;
     this.isLearningMode = false;
+    this.currentSongId = null;
+    this.songTitle = '';
     
     this.initializeElements();
     this.bindEvents();
+    this.loadSavedSongs();
   }
 
   // Optimisations mobiles simplifiées
@@ -26,14 +29,16 @@ class LyricsLearningApp {
   }
 
   initializeElements() {
+    this.songTitleInput = document.getElementById('song-title');
     this.lyricsInput = document.getElementById('lyrics-input');
     this.startButton = document.getElementById('start-learning');
-    this.resetButton = document.getElementById('reset-button');
+    this.saveSongButton = document.getElementById('save-song');
     this.lyricsDisplay = document.getElementById('lyrics-display');
     this.progressSection = document.querySelector('.progress-section');
     this.linesCompletedSpan = document.getElementById('lines-completed');
     this.totalLinesSpan = document.getElementById('total-lines');
     this.currentLevelSpan = document.getElementById('current-level');
+    this.savedSongsList = document.getElementById('saved-songs');
     
     // Éléments pour l'indicateur flottant
     this.floatingProgress = document.getElementById('floating-progress');
@@ -43,7 +48,11 @@ class LyricsLearningApp {
 
   bindEvents() {
     this.startButton.addEventListener('click', () => this.startLearning());
-    this.resetButton.addEventListener('click', () => this.reset());
+    this.saveSongButton.addEventListener('click', () => this.saveSong());
+    
+    // Sauvegarde automatique lors des changements
+    this.songTitleInput.addEventListener('input', () => this.autoSave());
+    this.lyricsInput.addEventListener('input', () => this.autoSave());
     
     // Appeler les optimisations mobiles après que les éléments soient initialisés
     this.setupMobileOptimizations();
@@ -51,15 +60,29 @@ class LyricsLearningApp {
 
   startLearning() {
     const lyrics = this.lyricsInput.value.trim();
+    const title = this.songTitleInput.value.trim();
+    
     if (!lyrics) {
       alert('Veuillez entrer des paroles de chanson');
       return;
     }
+    
+    if (!title) {
+      alert('Veuillez entrer un titre pour la chanson');
+      return;
+    }
 
     this.lyrics = lyrics;
+    this.songTitle = title;
     this.parsedLines = this.parseText(lyrics);
     this.currentLineIndex = 0;
     this.isLearningMode = true;
+    
+    // Générer un ID unique pour la chanson basé sur le titre et le contenu
+    this.currentSongId = this.generateSongId(title, lyrics);
+    
+    // Charger la progression sauvegardée si elle existe
+    this.loadSongProgress();
     
     // Initialiser chaque ligne avec le dernier mot caché
     this.initializeLines();
@@ -68,6 +91,9 @@ class LyricsLearningApp {
     this.progressSection.style.display = 'block';
     this.floatingProgress.style.display = 'flex';
     this.scrollToCurrentLine();
+    
+    // Sauvegarder automatiquement la chanson
+    this.autoSave();
   }
 
   parseText(text) {
@@ -261,6 +287,9 @@ class LyricsLearningApp {
     line.isCompleted = true;
     line.hasValidationButtons = false;
     
+    // Sauvegarder automatiquement la progression
+    this.autoSave();
+    
     // Passer à la ligne suivante
     this.moveToNextLine();
   }
@@ -287,6 +316,9 @@ class LyricsLearningApp {
       this.showCompletion();
       return;
     }
+    
+    // Sauvegarder automatiquement la progression
+    this.autoSave();
     
     // Réappliquer les mots cachés pour toutes les lignes
     this.initializeLines();
@@ -360,26 +392,214 @@ class LyricsLearningApp {
     }, 500);
   }
 
-  reset() {
-    this.lyrics = '';
-    this.parsedLines = [];
-    this.currentLineIndex = 0;
-    this.isLearningMode = false;
+  // Méthodes de sauvegarde et gestion des chansons
+  
+  generateSongId(title, lyrics) {
+    // Générer un ID unique basé sur le titre et un hash simple du contenu
+    const hash = lyrics.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return `${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Math.abs(hash)}`;
+  }
+  
+  getSavedSongs() {
+    const saved = localStorage.getItem('lyricsLearningApp_songs');
+    return saved ? JSON.parse(saved) : {};
+  }
+  
+  saveSong() {
+    const title = this.songTitleInput.value.trim();
+    const lyrics = this.lyricsInput.value.trim();
     
-    this.lyricsInput.value = '';
-    this.lyricsDisplay.innerHTML = '<p class="placeholder-text">Les paroles apparaîtront ici une fois que vous aurez collé du texte et cliqué sur "Commencer l\'apprentissage"</p>';
-    this.progressSection.style.display = 'none';
-    this.floatingProgress.style.display = 'none';
+    if (!title || !lyrics) {
+      alert('Veuillez entrer un titre et des paroles');
+      return;
+    }
     
+    const songId = this.generateSongId(title, lyrics);
+    const savedSongs = this.getSavedSongs();
+    
+    const songData = {
+      id: songId,
+      title: title,
+      lyrics: lyrics,
+      progress: this.parsedLines || [],
+      currentLineIndex: this.currentLineIndex || 0,
+      isLearningMode: this.isLearningMode || false,
+      lastModified: new Date().toISOString()
+    };
+    
+    savedSongs[songId] = songData;
+    localStorage.setItem('lyricsLearningApp_songs', JSON.stringify(savedSongs));
+    
+    this.loadSavedSongs();
+    alert('Chanson sauvegardée avec succès !');
+  }
+  
+  autoSave() {
+    // Sauvegarde automatique uniquement si une chanson est en cours d'apprentissage
+    if (this.isLearningMode && this.currentSongId) {
+      const savedSongs = this.getSavedSongs();
+      if (savedSongs[this.currentSongId]) {
+        savedSongs[this.currentSongId].progress = this.parsedLines;
+        savedSongs[this.currentSongId].currentLineIndex = this.currentLineIndex;
+        savedSongs[this.currentSongId].lastModified = new Date().toISOString();
+        localStorage.setItem('lyricsLearningApp_songs', JSON.stringify(savedSongs));
+      }
+    }
+  }
+  
+  loadSong(songId) {
+    const savedSongs = this.getSavedSongs();
+    const songData = savedSongs[songId];
+    
+    if (!songData) {
+      alert('Chanson non trouvée');
+      return;
+    }
+    
+    // Charger les données de la chanson
+    this.songTitleInput.value = songData.title;
+    this.lyricsInput.value = songData.lyrics;
+    this.songTitle = songData.title;
+    this.lyrics = songData.lyrics;
+    this.currentSongId = songId;
+    
+    // Parser les paroles et charger la progression
+    this.parsedLines = this.parseText(songData.lyrics);
+    this.currentLineIndex = 0; // Toujours recommencer à la première ligne
+    this.isLearningMode = true;
+    
+    // Charger la progression sauvegardée si elle existe
+    if (songData.progress && songData.progress.length > 0) {
+      // Fusionner la progression sauvegardée avec les nouvelles données parsées
+      this.parsedLines.forEach((line, index) => {
+        if (songData.progress[index]) {
+          line.hiddenCount = songData.progress[index].hiddenCount || 1;
+          line.isLearned = songData.progress[index].isLearned || false;
+          line.hasBeenRevealed = songData.progress[index].hasBeenRevealed || false;
+        }
+      });
+    }
+    
+    // Initialiser les lignes avec les mots cachés
+    this.initializeLines();
+    
+    // Démarrer l'apprentissage automatiquement
+    this.renderLyrics();
     this.updateProgress();
+    this.progressSection.style.display = 'block';
+    this.floatingProgress.style.display = 'flex';
+    
+    // Faire défiler vers le haut puis vers la ligne courante
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Délai pour s'assurer que le rendu est terminé avant de centrer sur la ligne courante
+    setTimeout(() => {
+      this.scrollToCurrentLine();
+    }, 300);
+  }
+  
+  loadSongProgress() {
+    if (!this.currentSongId) return;
+    
+    const savedSongs = this.getSavedSongs();
+    const songData = savedSongs[this.currentSongId];
+    
+    if (songData && songData.progress && songData.progress.length > 0) {
+      // Fusionner la progression sauvegardée avec les nouvelles données parsées
+      this.parsedLines.forEach((line, index) => {
+        if (songData.progress[index]) {
+          line.hiddenCount = songData.progress[index].hiddenCount || 1;
+          line.isLearned = songData.progress[index].isLearned || false;
+        }
+      });
+      
+      this.currentLineIndex = songData.currentLineIndex || 0;
+    }
+  }
+  
+  deleteSong(songId) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette chanson ?')) {
+      const savedSongs = this.getSavedSongs();
+      delete savedSongs[songId];
+      localStorage.setItem('lyricsLearningApp_songs', JSON.stringify(savedSongs));
+      this.loadSavedSongs();
+      
+      // Si c'est la chanson actuellement chargée, la réinitialiser
+      if (this.currentSongId === songId) {
+        this.lyrics = '';
+        this.parsedLines = [];
+        this.currentLineIndex = 0;
+        this.isLearningMode = false;
+        this.currentSongId = null;
+        this.songTitle = '';
+        
+        this.songTitleInput.value = '';
+        this.lyricsInput.value = '';
+        this.lyricsDisplay.innerHTML = '<p class="placeholder-text">Les paroles apparaîtront ici une fois que vous aurez collé du texte et cliqué sur "Commencer l\'apprentissage"</p>';
+        this.progressSection.style.display = 'none';
+        this.floatingProgress.style.display = 'none';
+        
+        this.updateProgress();
+      }
+    }
+  }
+  
+  loadSavedSongs() {
+    const savedSongs = this.getSavedSongs();
+    const songIds = Object.keys(savedSongs);
+    
+    if (songIds.length === 0) {
+      this.savedSongsList.innerHTML = '<div class="empty-songs-message">Aucune chanson sauvegardée</div>';
+      return;
+    }
+    
+    // Trier par date de modification (plus récent en premier)
+    songIds.sort((a, b) => {
+      const dateA = new Date(savedSongs[a].lastModified || 0);
+      const dateB = new Date(savedSongs[b].lastModified || 0);
+      return dateB - dateA;
+    });
+    
+    const songsHTML = songIds.map(songId => {
+      const song = savedSongs[songId];
+      const progress = song.progress || [];
+      const learnedLines = progress.filter(line => line.isLearned).length;
+      const totalLines = progress.length;
+      const percentage = totalLines > 0 ? Math.round((learnedLines / totalLines) * 100) : 0;
+      
+      return `
+        <div class="saved-song-item">
+          <div class="saved-song-info">
+            <div class="saved-song-title">${song.title}</div>
+            <div class="saved-song-progress">
+              Progression : ${percentage}% (${learnedLines}/${totalLines} lignes)
+            </div>
+          </div>
+          <div class="saved-song-actions">
+            <button class="load-song-btn" onclick="app.loadSong('${songId}')">
+              Charger
+            </button>
+            <button class="delete-song-btn" onclick="app.deleteSong('${songId}')">
+              Supprimer
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    this.savedSongsList.innerHTML = songsHTML;
   }
 }
 
 // Démarrer l'application
+let app; // Référence globale pour les boutons onclick
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    new LyricsLearningApp();
+    app = new LyricsLearningApp();
   });
 } else {
-  new LyricsLearningApp();
+  app = new LyricsLearningApp();
 }

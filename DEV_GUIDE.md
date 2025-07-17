@@ -61,6 +61,19 @@ class LyricsLearningApp {
 
 ### Structure des Données
 
+#### Chanson Sauvegardée
+```javascript
+{
+  id: 'chanson_unique_id',           // ID unique généré
+  title: 'Titre de la chanson',     // Titre saisi par l'utilisateur
+  lyrics: 'Paroles complètes...',   // Texte des paroles
+  progress: [...],                   // Progression des lignes
+  currentLineIndex: 0,               // Index de la ligne courante
+  isLearningMode: false,             // Mode apprentissage actif
+  lastModified: '2025-01-01T00:00:00.000Z' // Date de dernière modification
+}
+```
+
 #### Ligne Parsée
 ```javascript
 {
@@ -102,10 +115,18 @@ class LyricsLearningApp {
 - **Ponctuation** : Séparation correcte des mots et de la ponctuation
 - **Espaces** : Préservation de la mise en forme originale
 
-### 4. Suivi de Progression
+### 4. Gestion des Chansons Sauvegardées
+- **Titre de chanson** : Champ obligatoire pour identifier chaque chanson
+- **Sauvegarde automatique** : Progression sauvée en temps réel dans localStorage
+- **Liste des chansons** : Affichage des chansons avec progression
+- **Chargement** : Reprise de l'apprentissage où on s'était arrêté
+- **Suppression** : Gestion des chansons non désirées
+
+### 5. Suivi de Progression
 - **Pourcentage global** : Basé sur les lignes maîtrisées
 - **Indicateur flottant** : Progression en temps réel
 - **Défilement automatique** : Centrage sur la ligne courante
+- **Persistance** : Sauvegarde automatique de la progression
 
 ## 🔨 Développement
 
@@ -135,11 +156,15 @@ npx serve .
 
 #### Tests de Base
 - [ ] Saisie et parsing des paroles
+- [ ] Saisie du titre de chanson
 - [ ] Navigation ligne par ligne
 - [ ] Révélation des mots cachés
 - [ ] Validation 👍/👎
 - [ ] Progression de la difficulté
 - [ ] Cycle complet jusqu'à 100%
+- [ ] Sauvegarde automatique
+- [ ] Chargement des chansons sauvegardées
+- [ ] Suppression des chansons
 
 #### Tests Responsive
 - [ ] Mobile (< 480px)
