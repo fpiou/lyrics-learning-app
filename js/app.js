@@ -331,10 +331,9 @@ class LyricsLearningApp {
     const learnedLines = this.parsedLines.filter(line => line.isLearned).length;
     const linesPercentage = totalLines > 0 ? Math.round((learnedLines / totalLines) * 100) : 0;
     
-    if (linesPercentage >= 100) {
-      this.showCompletion();
-      return;
-    }
+    // if (linesPercentage >= 100) {
+    //   this.showCompletion();
+    // }
     
     // Sauvegarder automatiquement la progression
     this.autoSave();
